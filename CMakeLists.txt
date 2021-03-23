@@ -33,6 +33,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   gazebo_ros
   geometry_msgs
+  nav_msgs
 )
 
 # Depend on system install of Gazebo
@@ -53,3 +54,6 @@ catkin_package(
 add_library(${PROJECT_NAME} src/actor_plugin.cc)
 add_library(RVO ${RVO_HEADERS} ${RVO_SOURCES})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES} ignition-math4::ignition-math4 RVO)
+
+add_executable(rvo_simulation src/rvo_simulation.cpp)
+target_link_libraries(rvo_simulation ${catkin_LIBRARIES} RVO)

@@ -29,8 +29,8 @@
 #include "ros/ros.h"
 #include "ros/callback_queue.h"
 #include "ros/subscribe_options.h"
-#include "geometry_msgs/Pose.h"
-#include <RVO.h>
+#include "nav_msgs/Path.h"
+#include <geometry_msgs/Pose.h>
 
 namespace gazebo
 {
@@ -118,10 +118,16 @@ namespace gazebo
     /// \brief Handle an incoming message from ROS
     /// \param[in] _msg A float value that is used to set the velocity
     /// of the Velodyne.
-    public: void OnRosMsg(const geometry_msgs::PoseConstPtr &_msg)
+    public: void OnRosMsg(const nav_msgs::PathConstPtr &_msg)
     {
-      agent_pose = *_msg;
-      ROS_INFO("msg received");
+      if(id < _msg->poses.size())
+      {
+        agent_pose = _msg->poses[id].pose;
+        agent_pose.orientation.w = 1.0;
+      }
+
+      else 
+        ROS_WARN("Agent ID not present in list of poses");
     }
 
     /// \brief ROS helper function that processes messages
