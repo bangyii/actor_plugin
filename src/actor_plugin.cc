@@ -18,7 +18,6 @@
 #include <functional>
 
 #include <ignition/math.hh>
-#include <ignition/common/Profiler.hh>
 #include "gazebo/physics/physics.hh"
 #include "actor_plugin/actor_plugin.hh"
 
@@ -44,6 +43,12 @@ void ActorPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 
   this->Reset();
 
+  // Read in the actor id
+  if (_sdf->HasElement("actor_id"))
+    this->id = _sdf->Get<int>("actor_id");
+  else
+    ROS_WARN("Actor ID not specified, motion will not be defined");
+
   // Read in the target weight
   if (_sdf->HasElement("target_weight"))
     this->targetWeight = _sdf->Get<double>("target_weight");
@@ -68,8 +73,7 @@ void ActorPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   // Read in the other obstacles to ignore
   if (_sdf->HasElement("ignore_obstacles"))
   {
-    sdf::ElementPtr modelElem =
-      _sdf->GetElement("ignore_obstacles")->GetElement("model");
+    sdf::ElementPtr modelElem = _sdf->GetElement("ignore_obstacles")->GetElement("model");
     while (modelElem)
     {
       this->ignoreModels.push_back(modelElem->Get<std::string>());
@@ -86,18 +90,15 @@ void ActorPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
         ros::init_options::NoSigintHandler);
   }
 
-  // Create our ROS node. This acts in a similar manner to
-  // the Gazebo node
+  // Create our ROS node. This acts in a similar manner to the Gazebo node
   this->rosNode.reset(new ros::NodeHandle("gazebo_client"));
 
   // Create a named topic, and subscribe to it.
-  ros::SubscribeOptions so =
-    ros::SubscribeOptions::create<std_msgs::Float32>("/vel_cmd", 1, boost::bind(&ActorPlugin::OnRosMsg, this, _1), ros::VoidPtr(), &this->rosQueue);
+  ros::SubscribeOptions so = ros::SubscribeOptions::create<geometry_msgs::Pose>("/agent_pose_list", 1, boost::bind(&ActorPlugin::OnRosMsg, this, _1), ros::VoidPtr(), &this->rosQueue);
   this->rosSub = this->rosNode->subscribe(so);
 
   // Spin up the queue helper thread.
-  this->rosQueueThread =
-    std::thread(std::bind(&ActorPlugin::QueueThread, this));
+  this->rosQueueThread = std::thread(std::bind(&ActorPlugin::QueueThread, this));
 }
 
 /////////////////////////////////////////////////
@@ -176,9 +177,6 @@ void ActorPlugin::HandleObstacles(ignition::math::Vector3d &_pos)
 /////////////////////////////////////////////////
 void ActorPlugin::OnUpdate(const common::UpdateInfo &_info)
 {
-  IGN_PROFILE("ActorPlugin::UpdateImpl");
-  IGN_PROFILE_BEGIN("Update");
-
   // Time delta
   double dt = (_info.simTime - this->lastUpdate).Double();
 
@@ -219,8 +217,8 @@ void ActorPlugin::OnUpdate(const common::UpdateInfo &_info)
   }
 
   // Make sure the actor stays within bounds
-  pose.Pos().X(std::max(-3.0, std::min(3.5, pose.Pos().X())));
-  pose.Pos().Y(std::max(-10.0, std::min(2.0, pose.Pos().Y())));
+  pose.Pos().X(agent_pose.position.x);
+  pose.Pos().Y(agent_pose.position.y);
   pose.Pos().Z(1.2138);
 
   // Distance traveled is used to coordinate motion with the walking
@@ -232,5 +230,4 @@ void ActorPlugin::OnUpdate(const common::UpdateInfo &_info)
   this->actor->SetScriptTime(this->actor->ScriptTime() +
     (distanceTraveled * this->animationFactor));
   this->lastUpdate = _info.simTime;
-  IGN_PROFILE_END();
 }

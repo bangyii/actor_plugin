@@ -1,6 +1,21 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(actor_plugin)
 
+set(RVO_HEADERS
+	src/rvo/RVO.h
+	src/rvo/RVOSimulator.h
+	src/rvo/Vector2.h)
+
+set(RVO_SOURCES
+	src/rvo/Agent.cpp
+	src/rvo/Agent.h
+	src/rvo/Definitions.h
+	src/rvo/KdTree.cpp
+	src/rvo/KdTree.h
+	src/rvo/Obstacle.cpp
+	src/rvo/Obstacle.h
+	src/rvo/RVOSimulator.cpp)
+
 # Check for c++11 / c++0x support
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -17,13 +32,13 @@ endif()
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   gazebo_ros
-  std_msgs
+  geometry_msgs
 )
 
 # Depend on system install of Gazebo
 find_package(gazebo REQUIRED)
 
-find_package(ignition-common3 QUIET REQUIRED COMPONENTS profiler)
+# find_package(ignition-common1 QUIET REQUIRED COMPONENTS profiler)
 find_package(ignition-math4 REQUIRED)
 
 link_directories(${GAZEBO_LIBRARY_DIRS})
@@ -36,4 +51,5 @@ catkin_package(
 )
 
 add_library(${PROJECT_NAME} src/actor_plugin.cc)
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES} ignition-math4::ignition-math4 ignition-common3::profiler)
+add_library(RVO ${RVO_HEADERS} ${RVO_SOURCES})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES} ignition-math4::ignition-math4 RVO)

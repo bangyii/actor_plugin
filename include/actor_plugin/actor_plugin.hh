@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 #include <thread>
+#include <iostream>
 
 #include "gazebo/common/Plugin.hh"
 #include "gazebo/physics/physics.hh"
@@ -28,7 +29,8 @@
 #include "ros/ros.h"
 #include "ros/callback_queue.h"
 #include "ros/subscribe_options.h"
-#include "std_msgs/Float32.h"
+#include "geometry_msgs/Pose.h"
+#include <RVO.h>
 
 namespace gazebo
 {
@@ -107,11 +109,18 @@ namespace gazebo
     /// \brief A thread the keeps running the rosQueue
     private: std::thread rosQueueThread;
 
+    /// \brief Id of current actor, to get corresponding position from RVO simulator
+    private: int id;
+
+    /// \brief Pose of actor received from RVO simulator
+    private: geometry_msgs::Pose agent_pose;
+
     /// \brief Handle an incoming message from ROS
     /// \param[in] _msg A float value that is used to set the velocity
     /// of the Velodyne.
-    public: void OnRosMsg(const std_msgs::Float32ConstPtr &_msg)
+    public: void OnRosMsg(const geometry_msgs::PoseConstPtr &_msg)
     {
+      agent_pose = *_msg;
       ROS_INFO("msg received");
     }
 

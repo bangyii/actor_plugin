@@ -53,7 +53,7 @@
   <build_export_depend>roscpp</build_export_depend>
   <exec_depend>roscpp</exec_depend>
   <depend>gazebo_ros</depend>
-  <depend>std_msgs</depend>
+  <depend>geometry_msgs </depend>
   <depend>gazebo</depend>
 
 
