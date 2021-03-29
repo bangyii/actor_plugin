@@ -20,6 +20,8 @@
 #include <ignition/math.hh>
 #include "gazebo/physics/physics.hh"
 #include "actor_plugin/actor_plugin.hh"
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/LinearMath/Matrix3x3.h>
 
 using namespace gazebo;
 GZ_REGISTER_MODEL_PLUGIN(ActorPlugin)
@@ -129,100 +131,24 @@ void ActorPlugin::Reset()
 }
 
 /////////////////////////////////////////////////
-void ActorPlugin::ChooseNewTarget()
-{
-  ignition::math::Vector3d newTarget(this->target);
-  while ((newTarget - this->target).Length() < 2.0)
-  {
-    newTarget.X(ignition::math::Rand::DblUniform(-3, 3.5));
-    newTarget.Y(ignition::math::Rand::DblUniform(-10, 2));
-
-    for (unsigned int i = 0; i < this->world->ModelCount(); ++i)
-    {
-      double dist = (this->world->ModelByIndex(i)->WorldPose().Pos()
-          - newTarget).Length();
-      if (dist < 2.0)
-      {
-        newTarget = this->target;
-        break;
-      }
-    }
-  }
-  this->target = newTarget;
-}
-
-/////////////////////////////////////////////////
-void ActorPlugin::HandleObstacles(ignition::math::Vector3d &_pos)
-{
-  for (unsigned int i = 0; i < this->world->ModelCount(); ++i)
-  {
-    physics::ModelPtr model = this->world->ModelByIndex(i);
-    if (std::find(this->ignoreModels.begin(), this->ignoreModels.end(),
-          model->GetName()) == this->ignoreModels.end())
-    {
-      ignition::math::Vector3d offset = model->WorldPose().Pos() -
-        this->actor->WorldPose().Pos();
-      double modelDist = offset.Length();
-      if (modelDist < 4.0)
-      {
-        double invModelDist = this->obstacleWeight / modelDist;
-        offset.Normalize();
-        offset *= invModelDist;
-        _pos -= offset;
-      }
-    }
-  }
-}
-
-/////////////////////////////////////////////////
 void ActorPlugin::OnUpdate(const common::UpdateInfo &_info)
 {
-  // Time delta
-  double dt = (_info.simTime - this->lastUpdate).Double();
-
   ignition::math::Pose3d pose = this->actor->WorldPose();
-  ignition::math::Vector3d pos = this->target - pose.Pos();
-  ignition::math::Vector3d rpy = pose.Rot().Euler();
 
-  double distance = pos.Length();
+  pose.Pos().X(agent_pose.position.x);
+  pose.Pos().Y(agent_pose.position.y);
+  pose.Pos().Z(1.0138);
 
-  // Choose a new target position if the actor has reached its current
-  // target.
-  if (distance < 0.3)
-  {
-    this->ChooseNewTarget();
-    pos = this->target - pose.Pos();
-  }
+  tf2::Quaternion agent_quat;
+  agent_quat.setX(agent_pose.orientation.x);
+  agent_quat.setY(agent_pose.orientation.y);
+  agent_quat.setZ(agent_pose.orientation.z);
+  agent_quat.setW(agent_pose.orientation.w);
 
-  // Normalize the direction vector, and apply the target weight
-  pos = pos.Normalize() * this->targetWeight;
-
-  // // Adjust the direction vector by avoiding obstacles
-  // this->HandleObstacles(pos);
-
-  // // Compute the yaw orientation
-  // ignition::math::Angle yaw = atan2(pos.Y(), pos.X()) + 1.5707 - rpy.Z();
-  // yaw.Normalize();
-
-  // // Rotate in place, instead of jumping.
-  // if (std::abs(yaw.Radian()) > IGN_DTOR(10))
-  // {
-  //   pose.Rot() = ignition::math::Quaterniond(1.5707, 0, rpy.Z()+
-  //       yaw.Radian()*0.001);
-  // }
-  // else
-  // {
-  //   pose.Pos() += pos * this->velocity * dt;
-  //   pose.Rot() = ignition::math::Quaterniond(1.5707, 0, rpy.Z()+yaw.Radian());
-  // }
-
-  // Make sure the actor stays within bounds
-  // if(agent_pose.orientation.w != 0.0)
-  // {
-    pose.Pos().X(agent_pose.position.x);
-    pose.Pos().Y(agent_pose.position.y);
-  // }
-  pose.Pos().Z(1.2138);
+  tf2::Matrix3x3 mat(agent_quat);
+  double roll, pitch, yaw;
+  mat.getRPY(roll, pitch, yaw);
+  pose.Rot() = ignition::math::Quaterniond(1.5707, 0, 1.5707 + yaw);
 
   // Distance traveled is used to coordinate motion with the walking animation
   double distanceTraveled = (pose.Pos() - this->actor->WorldPose().Pos()).Length();

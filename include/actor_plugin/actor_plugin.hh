@@ -52,15 +52,6 @@ namespace gazebo
     /// \param[in] _info Timing information
     private: void OnUpdate(const common::UpdateInfo &_info);
 
-    /// \brief Helper function to choose a new target location
-    private: void ChooseNewTarget();
-
-    /// \brief Helper function to avoid obstacles. This implements a very
-    /// simple vector-field algorithm.
-    /// \param[in] _pos Direction vector that should be adjusted according
-    /// to nearby obstacles.
-    private: void HandleObstacles(ignition::math::Vector3d &_pos);
-
     /// \brief Pointer to the parent actor.
     private: physics::ActorPtr actor;
 
@@ -122,11 +113,7 @@ namespace gazebo
     public: void OnRosMsg(const pedsim_msgs::AgentStatesConstPtr &_msg)
     {
       if(id < _msg->agent_states.size())
-      {
         agent_pose = _msg->agent_states[id].pose;
-        // agent_pose = _msg->poses[id].pose;
-        // agent_pose.orientation.w = 1.0;
-      }
 
       else 
         ROS_WARN("Agent ID not present in list of poses");
