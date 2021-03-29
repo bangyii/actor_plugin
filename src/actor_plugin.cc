@@ -94,7 +94,7 @@ void ActorPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   this->rosNode.reset(new ros::NodeHandle("gazebo_client"));
 
   // Create a named topic, and subscribe to it.
-  ros::SubscribeOptions so = ros::SubscribeOptions::create<nav_msgs::Path>("/pedestrian_positions", 1, boost::bind(&ActorPlugin::OnRosMsg, this, _1), ros::VoidPtr(), &this->rosQueue);
+  ros::SubscribeOptions so = ros::SubscribeOptions::create<pedsim_msgs::AgentStates>("/pedsim_simulator/simulated_agents", 1, boost::bind(&ActorPlugin::OnRosMsg, this, _1), ros::VoidPtr(), &this->rosQueue);
   this->rosSub = this->rosNode->subscribe(so);
 
   // Spin up the queue helper thread.
@@ -197,31 +197,31 @@ void ActorPlugin::OnUpdate(const common::UpdateInfo &_info)
   // Normalize the direction vector, and apply the target weight
   pos = pos.Normalize() * this->targetWeight;
 
-  // Adjust the direction vector by avoiding obstacles
-  this->HandleObstacles(pos);
+  // // Adjust the direction vector by avoiding obstacles
+  // this->HandleObstacles(pos);
 
-  // Compute the yaw orientation
-  ignition::math::Angle yaw = atan2(pos.Y(), pos.X()) + 1.5707 - rpy.Z();
-  yaw.Normalize();
+  // // Compute the yaw orientation
+  // ignition::math::Angle yaw = atan2(pos.Y(), pos.X()) + 1.5707 - rpy.Z();
+  // yaw.Normalize();
 
-  // Rotate in place, instead of jumping.
-  if (std::abs(yaw.Radian()) > IGN_DTOR(10))
-  {
-    pose.Rot() = ignition::math::Quaterniond(1.5707, 0, rpy.Z()+
-        yaw.Radian()*0.001);
-  }
-  else
-  {
-    pose.Pos() += pos * this->velocity * dt;
-    pose.Rot() = ignition::math::Quaterniond(1.5707, 0, rpy.Z()+yaw.Radian());
-  }
+  // // Rotate in place, instead of jumping.
+  // if (std::abs(yaw.Radian()) > IGN_DTOR(10))
+  // {
+  //   pose.Rot() = ignition::math::Quaterniond(1.5707, 0, rpy.Z()+
+  //       yaw.Radian()*0.001);
+  // }
+  // else
+  // {
+  //   pose.Pos() += pos * this->velocity * dt;
+  //   pose.Rot() = ignition::math::Quaterniond(1.5707, 0, rpy.Z()+yaw.Radian());
+  // }
 
   // Make sure the actor stays within bounds
-  if(agent_pose.orientation.w != 0.0)
-  {
+  // if(agent_pose.orientation.w != 0.0)
+  // {
     pose.Pos().X(agent_pose.position.x);
     pose.Pos().Y(agent_pose.position.y);
-  }
+  // }
   pose.Pos().Z(1.2138);
 
   // Distance traveled is used to coordinate motion with the walking animation

@@ -31,6 +31,7 @@
 #include "ros/subscribe_options.h"
 #include "nav_msgs/Path.h"
 #include <geometry_msgs/Pose.h>
+#include <pedsim_msgs/AgentStates.h>
 
 namespace gazebo
 {
@@ -118,12 +119,13 @@ namespace gazebo
     /// \brief Handle an incoming message from ROS
     /// \param[in] _msg A float value that is used to set the velocity
     /// of the Velodyne.
-    public: void OnRosMsg(const nav_msgs::PathConstPtr &_msg)
+    public: void OnRosMsg(const pedsim_msgs::AgentStatesConstPtr &_msg)
     {
-      if(id < _msg->poses.size())
+      if(id < _msg->agent_states.size())
       {
-        agent_pose = _msg->poses[id].pose;
-        agent_pose.orientation.w = 1.0;
+        agent_pose = _msg->agent_states[id].pose;
+        // agent_pose = _msg->poses[id].pose;
+        // agent_pose.orientation.w = 1.0;
       }
 
       else 
