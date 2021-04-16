@@ -135,20 +135,23 @@ void ActorPlugin::OnUpdate(const common::UpdateInfo &_info)
 {
   ignition::math::Pose3d pose = this->actor->WorldPose();
 
-  pose.Pos().X(agent_pose.position.x);
-  pose.Pos().Y(agent_pose.position.y);
-  pose.Pos().Z(1.0138);
+  if(agent_pose.orientation.w != 0.0)
+  {
+    pose.Pos().X(agent_pose.position.x);
+    pose.Pos().Y(agent_pose.position.y);
+    pose.Pos().Z(1.0138);
 
-  tf2::Quaternion agent_quat;
-  agent_quat.setX(agent_pose.orientation.x);
-  agent_quat.setY(agent_pose.orientation.y);
-  agent_quat.setZ(agent_pose.orientation.z);
-  agent_quat.setW(agent_pose.orientation.w);
+    tf2::Quaternion agent_quat;
+    agent_quat.setX(agent_pose.orientation.x);
+    agent_quat.setY(agent_pose.orientation.y);
+    agent_quat.setZ(agent_pose.orientation.z);
+    agent_quat.setW(agent_pose.orientation.w);
 
-  tf2::Matrix3x3 mat(agent_quat);
-  double roll, pitch, yaw;
-  mat.getRPY(roll, pitch, yaw);
-  pose.Rot() = ignition::math::Quaterniond(1.5707, 0, 1.5707 + yaw);
+    tf2::Matrix3x3 mat(agent_quat);
+    double roll, pitch, yaw;
+    mat.getRPY(roll, pitch, yaw);
+    pose.Rot() = ignition::math::Quaterniond(1.5707, 0, 1.5707 + yaw);
+  }
 
   // Distance traveled is used to coordinate motion with the walking animation
   double distanceTraveled = (pose.Pos() - this->actor->WorldPose().Pos()).Length();
