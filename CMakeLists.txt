@@ -40,3 +40,6 @@ catkin_package(
 
 add_library(${PROJECT_NAME} src/actor_plugin.cc)
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES} ignition-math4::ignition-math4)
+
+add_library(attach_collision_plugin SHARED src/attach_collision_plugin.cc)
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
