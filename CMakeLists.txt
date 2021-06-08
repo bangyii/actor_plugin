@@ -21,6 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
   nav_msgs
   pedsim_msgs
   tf2
+  gamma_simulator
 )
 
 # Depend on system install of Gazebo

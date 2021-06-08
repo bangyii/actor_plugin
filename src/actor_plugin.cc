@@ -96,7 +96,8 @@ void ActorPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   this->rosNode.reset(new ros::NodeHandle("gazebo_client"));
 
   // Create a named topic, and subscribe to it.
-  ros::SubscribeOptions so = ros::SubscribeOptions::create<pedsim_msgs::AgentStates>("/pedsim_simulator/simulated_agents", 1, boost::bind(&ActorPlugin::OnRosMsg, this, _1), ros::VoidPtr(), &this->rosQueue);
+  // ros::SubscribeOptions so = ros::SubscribeOptions::create<pedsim_msgs::AgentStates>("/pedsim_simulator/simulated_agents", 1, boost::bind(&ActorPlugin::OnRosMsg, this, _1), ros::VoidPtr(), &this->rosQueue);
+  ros::SubscribeOptions so = ros::SubscribeOptions::create<gamma_simulator::AgentStates>("/gamma_simulator/agent_states", 1, boost::bind(&ActorPlugin::OnAgentMsg, this, _1), ros::VoidPtr(), &this->rosQueue);
   this->rosSub = this->rosNode->subscribe(so);
 
   // Spin up the queue helper thread.

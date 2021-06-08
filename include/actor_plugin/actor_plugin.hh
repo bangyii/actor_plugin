@@ -32,6 +32,7 @@
 #include "nav_msgs/Path.h"
 #include <geometry_msgs/Pose.h>
 #include <pedsim_msgs/AgentStates.h>
+#include <gamma_simulator/AgentStates.h>
 
 namespace gazebo
 {
@@ -114,6 +115,15 @@ namespace gazebo
     {
       if(id < _msg->agent_states.size())
         agent_pose = _msg->agent_states[id].pose;
+
+      else 
+        ROS_WARN("Agent ID not present in list of poses");
+    }
+
+    public: void OnAgentMsg(const gamma_simulator::AgentStatesConstPtr &_msg)
+    {
+      if(id < _msg->agent_states.size())
+        agent_pose = _msg->agent_states[id].pose.pose;
 
       else 
         ROS_WARN("Agent ID not present in list of poses");
